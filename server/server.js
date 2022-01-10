@@ -17,9 +17,9 @@ const io = require('socket.io')(http, {
    allowEIO3: true
 });
 
-https://stackoverflow.com/questions/23653617/socket-io-listen-events-in-separate-files-in-node-js
+/* https://stackoverflow.com/questions/23653617/socket-io-listen-events-in-separate-files-in-node-js */
 io.on("connection", client =>{
-    require('./routes/game4')(client, io);
+    require('./routes/game')(client, io);
 })
 
 http.listen(process.env.PORT || 5001);
