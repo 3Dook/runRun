@@ -8,23 +8,31 @@ const clientRooms = {}
 
 
 module.exports = (client, io)=>{
-    //client.emit("hi", "NO HEAD ACHES PLEASE")
-    client.on("HI", ()=>{
-        console.log("hello")
-    });
     client.on('hostGame', handleHostgame);
     client.on('joinGame', handleJoingame);
     client.on('startGame', handleStartGame);
     client.on('disconnect', handleDisconnect); 
+    client.on('restartGame', handleRestart);
     client.on("keyPress", (k)=>{
         const roomName = clientRooms[client.id];
         if(!roomName){
             return;
         }
+
+        // check to see if player has been eliminated;
+
         //get client Id and then pass that information to
         // update the board
         data = state[roomName]
         player = client.id
+        // check to see if player has been eliminated
+        let playerIsOut = data.players.find(player => player.id === client.id); 
+
+        if(playerIsOut.eliminated){
+            return;
+        }
+
+        // update the board
         data = updateBoard(data, k, player);
         state[roomName] = data
         io.in(roomName).emit("update", data)
@@ -50,7 +58,6 @@ module.exports = (client, io)=>{
         //update lobby size;
         io.in(roomName).emit("lobbySize", data.players.length);
 
-        
     }
 
     function handleHostgame(){
@@ -59,10 +66,12 @@ module.exports = (client, io)=>{
         client.emit('roomName', roomName);
         let clientShortName = client.id.slice(-5, -1)
         client.emit('clientName', clientShortName)
-        state[roomName] = createGameState(client.id); 
-        client.join(roomName);
+        state[roomName] = createGameState(); 
         client.number = 1;
-        client.emit()
+        addPlayer(state[roomName], client.id, client.number)
+        client.join(roomName);
+
+        io.in(roomName).emit("bulletin", `Player ${client.number} started Host game`)
         io.in(roomName).emit("update", state[roomName])
         //console.log(clientRooms)
     }
@@ -105,6 +114,7 @@ module.exports = (client, io)=>{
 
         clientRooms[client.id] = roomName;
         client.join(roomName);
+        client.emit("joinSuccess");
         // correct get the right number here to fix the name
         client.number = clientNewNumber;
         client.emit('roomName', roomName);
@@ -120,16 +130,31 @@ module.exports = (client, io)=>{
     
     function frameLoop(roomName){
         const intervalId = setInterval(()=>{
-            const winner = gameLoop(state[roomName]);
-            if(!winner){
-                //no one won so keep playing
+/*             const winner = gameLoop(state[roomName]); */
+            gameLoop(state[roomName], roomName, io);
+
+            if(state[roomName].active){
+                //there is at least one player active so keep going.
                 io.in(roomName).emit("update", state[roomName]) 
             } else {
                 io.in(roomName).emit("update", state[roomName]) 
-                // send the loser who died and everyone else who is alive so they can keep playing.
-                let msg = `PLAYER ${winner} has died`
-                io.in(roomName).emit("bulletin", msg) 
+                // broadcast winner based on highest score.
+                let highestScore = 0;
+                let highestPlayers = [];
 
+                state[roomName].players.forEach(player => {
+                    if(player.score >= highestScore){
+                        highestScore = player.score;
+                    }
+                })
+
+                highestPlayers = state[roomName].players.filter(p => p.score === highestScore);
+
+                let winners = highestPlayers.map((player)=>{
+                    return player.name;
+                })
+                io.in(roomName).emit("bulletin", `Player ${winners} has Won with a score of ${highestScore}`) 
+                io.in(roomName).emit("resetAllowed")
                 // check interval to see is there anyone left in the game.
                 clearInterval(intervalId);
             }
@@ -155,5 +180,23 @@ module.exports = (client, io)=>{
                 io.in(roomName).emit("bulletin", msg) 
             }
         }, 1000);
+    }
+
+
+    function handleRestart(roomName){
+        if(!state[roomName]){
+            client.emit("fail", "unable to restart game")
+            return
+        }
+
+        let temp = createGameState();
+
+        state[roomName].players.forEach(player=>{
+            addPlayer(temp, player.id, player.name);
+        })
+        //need to get list of clients in a room and
+        // make a new board, and reassign all players positions.
+        state[roomName] = temp;
+        io.in(roomName).emit("update", state[roomName]) 
     }
 }

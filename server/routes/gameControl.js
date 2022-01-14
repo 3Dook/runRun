@@ -1,4 +1,4 @@
-const {FRAMERATE, XGRIDSIZE, YGRIDSIZE} = require('./constants')
+const {FRAMERATE, XGRIDSIZE, YGRIDSIZE, POINTS} = require('./constants')
 module.exports = {
     updateBoard,
     createGameState,
@@ -7,43 +7,80 @@ module.exports = {
     cleanBoard,
 }
 
-function gameLoop(game){
-    //players and the board,
-    // each loop will shift each array forward
-    // and then either make obstacles, boons or nothing
+
+
+function gameLoop(game, roomName, io){
+
+    let shiftPlayers = [];
+    game.players.forEach(player =>{
+        if (validMove(game.board, player.pos.x+1, player.pos.y)){
+            if( game.board[player.pos.y][player.pos.x + 1] === '*'){
+                player.score += POINTS;
+            }
+            game.board[player.pos.y][player.pos.x + 1] = player.name;
+            game.board[player.pos.y][player.pos.x] = 0;
+        }else if (game.board[player.pos.y][player.pos.x + 1] > 0){
+            // If another player is in front shift forward later if possible
+            shiftPlayers.push(player.name);
+        }
+        else{
+            player.pos.x -= 1;
+        }
+    })    
+  
+    //for loop backwards to check and move it forward.
+    let shiftLength = shiftPlayers.length;
+    for(let i = shiftLength; i > 0; i--){
+        let tempShift = game.players.find(player => player.name === shiftPlayers[i - 1])
+        if (validMove(game.board, tempShift.pos.x + 1, tempShift.pos.y)){
+            game.board[tempShift.pos.y][tempShift.pos.x + 1] =tempShift.name;
+            game.board[tempShift.pos.y][tempShift.pos.x] = 0;
+        }
+        else{
+            tempShift.pos.x-= 1;
+        }
+    }
+
     game.board.forEach(row => {
         check = row.shift()
-        //console.log(check)
         row.push(0)
     });
-
-    // Originally shift player back with the game.
-    // v2. let players stay in place
-    game.players.forEach(player =>{
-        player.pos.x -= 1;
-        temp = game.board[player.pos.y][player.pos.x+1]
-        game.board[player.pos.y][player.pos.x+1] = temp;
-        game.board[player.pos.y][player.pos.x] = player.name;
-    })
 
     game.obstacle += 1;
     if(game.obstacle > 3){
         createObstacle(game)
         game.obstacle = 0
+    }else if(game.obstacle < 2){
+        do {
+            xTemp = Math.floor(Math.random() * XGRIDSIZE);
+            yTemp = Math.floor(Math.random() * YGRIDSIZE);
+        } while(!validMove(game.board, xTemp, yTemp));
+    
+        game.board[yTemp][xTemp] = "*"
     }
 
-    //
-    for(let i=0; i<game.players.length; i++){
+    game.active = false;
+    game.players.forEach(player =>{
+        if(!player.eliminated){
+            if(player.pos.x < 0){
+                player.eliminated = true;
+                let msg = `PLAYER ${player.name} has been eliminated`;
+                io.in(roomName).emit("bulletin", msg) 
+            }else{
+                player.score += 1;
+                game.active = true;
+            }
+        }
+    })
+
+/*     for(let i=0; i<game.players.length; i++){
         if(game.players[i].pos.x < 0){
             return game.players[i].name;
         }
-    }
-
-
-
+    } */
 }
 
-function createGameState(playerId){
+function createGameState(){
     
     // GRID Size
     const arr = new Array(YGRIDSIZE);
@@ -54,10 +91,9 @@ function createGameState(playerId){
     game = {
         obstacle: 0,
         players:[],
+        active: true,
         board: arr
     }
-
-    addPlayer(game, playerId, 1);
 
     return game;
 
@@ -73,6 +109,8 @@ function addPlayer(game, playerId, playNum){
     let temp = {
         name: playNum,
         id: playerId,
+        score: 0,
+        eliminated: false,
         pos:{
             x: xTemp,
             y: yTemp,
@@ -94,7 +132,7 @@ function validMove(board, x, y){
         return false;
     }
 
-    if (board[y][x] === 0){
+    if (board[y][x] === 0 || board[y][x]=== '*'){
         return true
     }
     return false;
@@ -102,17 +140,22 @@ function validMove(board, x, y){
 
 function createObstacle(game){
     //This function reads the game state and will add obstacles for user to avoid. 
-    xtemp = Math.floor(Math.random() * (XGRIDSIZE-15) + 15);
-    ytemp = Math.floor(Math.random() * YGRIDSIZE);
-    upOrdown = Math.floor(Math.random() * 2);
-    for(let i = 0; i < (ytemp); i++){
-        if(game.board[i][xtemp] > 0){
-            continue;
-        }
-        else{
-            game.board[i][xtemp] = '*'
-        }
+/*     xtemp = Math.floor(Math.random() * (XGRIDSIZE-15) + 15); */
+    ytemp = Math.floor(Math.random() * (YGRIDSIZE) + 3);
+
+    let obstacleArray = []
+    for(let i = 0; i < yTemp; i++){
+        let temp = Math.floor(Math.random() * YGRIDSIZE);
+        obstacleArray.push(temp);
     }
+
+    obstacleArray.forEach(obstacle =>{
+        if(game.board[obstacle][XGRIDSIZE-1] === 0){
+            game.board[obstacle][XGRIDSIZE-1]  = "||" 
+        }
+    })
+
+    //change frame rates
     // multiple types road blocks 
     // fire   
 }
@@ -158,6 +201,9 @@ function updateBoard(game, key, playerId){
         }
 
         if(validMove(game.board, x, y)){
+            if( game.board[y][x] === '*'){
+                player.score += POINTS;
+            }
             game.board[y][x] = player.name;
             game.players[playerIndex].pos.x = x;
             game.players[playerIndex].pos.y = y;
