@@ -2,51 +2,74 @@
 
 .gameDisplay{
     margin: 20px;
-    padding: 20px;
-    background-color: olive;
+    padding: 2px;
+/*     background-color: olive; */
     display: grid;
     height: 50vh;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: auto 1fr;
+    width: 95vh;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: 1fr 1fr 1fr auto;
     column-gap: 12px;
     align-items: center;
-}
-
-.title{
-    background-color: indigo;
-    grid-column: 1 / span 5;
+    border-width: thick;
+    border-color: black;
+    border-style: solid;
+    box-shadow: 10px 10px 10px gray;
 }
 
 .bulletinBoard{
-    background-color: burlywood;
-    grid-column: 3 / span 5;
+/*     background-color: burlywood; */
+    border-width: medium;
+    border-color: black;
+    border-style: solid;
+    grid-column: 3 / span 10;
 }
 
-.userColumn{
-    height: 100%;
-    background-color: lightslategrey;
-    grid-column: 1 / span 2;
-    grid-row: 2 / span 3;
+.mainbulletinBoard{
+/*     background-color: burlywood; */
+    border-width: medium;
+    border-color: black;
+    border-style: solid;
+    grid-column: 1 / span 10;
+}
 
+
+.userColumn{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;  
+    height: 100%;
+    background-color:#d1d1d1;
+    grid-column: 1 / span 2;
+    grid-row: 1 / span 4;
+}
+
+
+
+.instructions{
+    grid-column: 3 / span 10;
+    grid-row: 4;
+    font-size: 12px;
 }
 
 /* https://stackoverflow.com/questions/45536537/centering-in-css-grid */
 .gameTable{
     height: 100%;
-    grid-column: 3 / span 5;
+    grid-column: 3 / span 10;
     text-align: center;
-/*     background-color: #2c2c2c; */
-    background-color: red;
+    background-color: #2c2c2c;
+/*     background-color: red; */
     font-size: calc(10px + 2vmin);
     color: white;
 }
 
 .gameGrid{
-    margin: 10px;
+    margin: 1px;
     display: grid;
     background-color: #2c2c2c;
     grid-template-columns: repeat(20, 1fr);
-    column-gap: 12px;
+/*     column-gap: 12px; */
     align-items: center;
 }
 
@@ -56,4 +79,22 @@
 
 .blank0{
     color: #2c2c2c;
+}
+
+
+
+.hostOrJoin{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    grid-column: 5 / span 2;
+    grid-row: 2 / span 3;
+    height: 100%;
+    align-items: center;
+}
+
+
+.startOrRestart {
+    grid-column: 6 / span 2;
 }

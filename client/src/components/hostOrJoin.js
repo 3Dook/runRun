@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-
+import './display.css';
+import Button from 'react-bootstrap/Button';
 
 function HostOrJoin(props){
 /*     const [grid, setGrid] = useState */
@@ -27,13 +28,14 @@ function HostOrJoin(props){
     }
 
     return(
-        <div>
-            <button onClick={handleHostButton} >HOST</button>
+        <div className='hostOrJoin'>
+            <Button variant="success" onClick={handleHostButton} size="lg">HOST</Button>       
+            <p>OR</p>
           <form /* onSubmit={this.handleSubmit} */>
             <label>
                 <input type="text" name="room" placeholder={placeholder} onChange={handlePlacerHolderChange} />
             </label>
-            <input type="submit" value="Join" onClick={handleJoinButton} />
+            <Button variant="primary"onClick={handleJoinButton} size="lg">JOIN</Button>
           </form>
         </div>
     );

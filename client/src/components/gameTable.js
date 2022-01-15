@@ -10,7 +10,7 @@ function GameTable(props){
                         <div className='gameGrid' key={line}>
                             {row.map((cell, cellIndex)=>{
                                 return(
-                                    <Cell key={cellIndex} data={cell}/>
+                                    <Cell key={cellIndex} data={cell} colors={props.colors}/>
                                 )
                             })}
                         </div>
