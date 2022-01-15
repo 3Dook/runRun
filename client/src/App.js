@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import Display from './components/display'
-import HostOrJoin from './components/hostOrJoin';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+
 
 
 
@@ -14,7 +15,7 @@ function App() {
   const [lobbySize, setLobby] = useState(1);
   const [bulletin, setBullet] = useState("PLEASE HOST OR JOIN A GAME TO START");
   const [playScore, setScore] = useState(0);
- 
+  const [playerColors, setPlayerColors] = useState([]);
   useEffect(() => {
     const newSocket = io(`http://localhost:5001`);
     setSocket(newSocket);
@@ -43,6 +44,17 @@ function App() {
     })
     newSocket.on('update', (board)=>{
       let score = board.players.find(player=> player.id === newSocket.id);
+
+      let tempColors = []
+      board.players.forEach(player=>{
+        let temp = {
+          name: player.name,
+          color: player.color
+        }
+        tempColors.push(temp)
+      })
+
+      setPlayerColors(tempColors)
       setScore(score.score);
       setData(board.board);
     })
@@ -66,7 +78,10 @@ function App() {
 
   return (
     <div className="App">
-      <Display grid={data} bulletin={bulletin} clientName={client} roomName={roomName} lobby={lobbySize} playScore={playScore} socket={socket}/>
+      <div className='title'>
+        <h1>RUN RUN</h1>
+      </div>
+      <Display grid={data} bulletin={bulletin} clientName={client} roomName={roomName} lobby={lobbySize} playScore={playScore} socket={socket} colors={playerColors}/>
     </div>
 
   );

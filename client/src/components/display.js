@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import HostOrJoin from './hostOrJoin';
 import './display.css';
 import GameTable from './gameTable';
+import Button from 'react-bootstrap/esm/Button';
 
 function Display(props){
 /*     const [grid, setGrid] = useState */
@@ -35,11 +36,10 @@ function Display(props){
 
     return(
         <div className="gameDisplay">
-            <div className="title">RUN RUN</div>
-            <div className="bulletinBoard">{props.bulletin}</div>
+            {showGame ?
             <div className='userColumn'>
                 <div>
-                    Name: {props.clientName}
+                    {props.clientName}
                 </div>
                 <div>
                     Room: {props.roomName}
@@ -50,14 +50,27 @@ function Display(props){
                 <div>
                     Score: {props.playScore}
                 </div>
-                <div>
-                    {host ? <button onClick={handleStart}>START</button> : null}
-                </div>
-                <div>
-                    {restart ? <button onClick={handleRestart}>New Game</button>: null }
-                </div>
             </div>
-            {showGame ? <GameTable grid={props.grid}/> : <HostOrJoin socket={props.socket} onJoin={onJoin} start={showStart}/>}
+            : null
+            }
+
+
+            {showGame ? 
+            <div className="bulletinBoard">{props.bulletin}</div>
+            :
+            <div className="mainbulletinBoard">{props.bulletin}</div>
+            }
+
+            {showGame ? <GameTable grid={props.grid} colors={props.colors}/> : <HostOrJoin socket={props.socket} onJoin={onJoin} start={showStart}/>}
+
+            {host ? <Button variant="success" className="startOrRestart" onClick={handleStart} size="lg">START</Button>: null}
+
+            {restart ?  <Button variant="warning" className="startOrRestart" onClick={handleRestart} >NEW GAME</Button>: null }
+
+            {showGame ?
+            <div className='instructions'>Instruction: Use "WASD" to move and collect points and block other players. The player with the highest Points wins!
+            </div> : null
+            }
         </div>
     );
 }

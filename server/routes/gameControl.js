@@ -1,4 +1,4 @@
-const {FRAMERATE, XGRIDSIZE, YGRIDSIZE, POINTS} = require('./constants')
+const {FRAMERATE, XGRIDSIZE, YGRIDSIZE, POINTS, COLORSET} = require('./constants')
 module.exports = {
     updateBoard,
     createGameState,
@@ -6,7 +6,6 @@ module.exports = {
     gameLoop,
     cleanBoard,
 }
-
 
 
 function gameLoop(game, roomName, io){
@@ -115,7 +114,7 @@ function addPlayer(game, playerId, playNum){
             x: xTemp,
             y: yTemp,
         },
-        color: "red",
+        color: COLORSET[playNum-1],
     }
 
     game.players.push(temp)

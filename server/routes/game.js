@@ -64,13 +64,11 @@ module.exports = (client, io)=>{
         let roomName = makeid(5);
         clientRooms[client.id] = roomName;
         client.emit('roomName', roomName);
-        let clientShortName = client.id.slice(-5, -1)
-        client.emit('clientName', clientShortName)
         state[roomName] = createGameState(); 
         client.number = 1;
         addPlayer(state[roomName], client.id, client.number)
         client.join(roomName);
-
+        client.emit('clientName', `Player ${client.number}`);
         io.in(roomName).emit("bulletin", `Player ${client.number} started Host game`)
         io.in(roomName).emit("update", state[roomName])
         //console.log(clientRooms)
@@ -92,7 +90,7 @@ module.exports = (client, io)=>{
         if (numClients === 0){
             client.emit("bulletin", 'unknownGame');
             return
-        } else if (numClients > 8){
+        } else if (numClients > 7){
             client.emit("bulletin", 'tooManyPlayers');
             return
         }
@@ -118,8 +116,7 @@ module.exports = (client, io)=>{
         // correct get the right number here to fix the name
         client.number = clientNewNumber;
         client.emit('roomName', roomName);
-        let clientShortName = client.id.slice(-5, -1)
-        client.emit('clientName', clientShortName)
+        client.emit('clientName', `Player ${client.number}`)
         io.in(roomName).emit("lobbySize", numClients + 1);
         state[roomName] = addPlayer(state[roomName], client.id, client.number)
         let msg  = `Player ${client.number} has joined the room`;
