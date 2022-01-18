@@ -13,7 +13,11 @@ function Cell(props){
             if(cellContent > 0){
                 // player object
                 let cellColor = props.colors.find(color => color.name === cellContent);
-                setColor(cellColor.color);
+                try{
+                    setColor(cellColor.color);
+                }catch(e){
+                    setColor("#2c2c2c")
+                }
             }
             else{
                 setColor("#2c2c2c")

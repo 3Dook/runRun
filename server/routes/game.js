@@ -49,15 +49,20 @@ module.exports = (client, io)=>{
 
         // find player number
         let playNum = data.players.find(p=> p.id === player);
+        io.in(roomName).emit("bulletin", `Player ${playNum.name} has Disconnected`);
 
         data = cleanBoard(data, player);
         state[roomName] = data;
         io.in(roomName).emit("update", data);
-        io.in(roomName).emit("bulletin", `Player ${playNum} has Disconnected`);
 
         //update lobby size;
         io.in(roomName).emit("lobbySize", data.players.length);
 
+    
+        //If there are no more players in the room then delete the state
+        if(data.players.length <= 0){
+            delete state[roomName];
+        }
     }
 
     function handleHostgame(){
