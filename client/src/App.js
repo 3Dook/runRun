@@ -24,7 +24,6 @@ function App() {
     });
 
     newSocket.on('connect', ()=>{
-      console.log(newSocket.id)
     })
 
     newSocket.on('disconnect', ()=>{
@@ -44,7 +43,6 @@ function App() {
     })
     newSocket.on('update', (board)=>{
       let score = board.players.find(player=> player.id === newSocket.id);
-
       let tempColors = []
       board.players.forEach(player=>{
         let temp = {
